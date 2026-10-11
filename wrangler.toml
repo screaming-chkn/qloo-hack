@@ -1,0 +1,12 @@
+name = "qloo-hack"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+QLOO_BASE = "https://hackathon.api.qloo.com"
+MOCK = "0"
+
+[ai]
+binding = "AI"
+
+# QLOO_API_KEY is a Worker secret (wrangler secret put QLOO_API_KEY). Never commit it.
