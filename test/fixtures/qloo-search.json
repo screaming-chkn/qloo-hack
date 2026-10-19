@@ -1,0 +1,36 @@
+{
+ "_source": {
+  "url": "https://docs.qloo.com/reference/search-entities",
+  "kind": "doc-shaped sample built from the published OpenAPI response schema (docs.qloo.com); not verbatim, not live"
+ },
+ "results": [
+  {
+   "entity_id": "636E1B95-6232-43E1-BDFE-37CD209C2CE3",
+   "name": "Blade Runner",
+   "types": [
+    "urn:entity:movie"
+   ],
+   "properties": {
+    "release_year": 1982,
+    "short_description": "1982 film"
+   },
+   "tags": [
+    {
+     "name": "Neo-Noir",
+     "id": "urn:tag:genre:media:neo_noir"
+    }
+   ]
+  },
+  {
+   "entity_id": "7D2B1DFF-9D5D-44DE-970E-46B80C76CFA6",
+   "name": "Blade Runner 2049",
+   "types": [
+    "urn:entity:movie"
+   ],
+   "properties": {
+    "release_year": 2017
+   },
+   "tags": []
+  }
+ ]
+}

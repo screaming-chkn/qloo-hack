@@ -1,0 +1,47 @@
+name = "qloo-hack"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+QLOO_BASE = "https://hackathon.api.qloo.com"
+# MOCK: "force" puts every source on fixtures; otherwise each source goes live only when its own key secret is set.
+MOCK = "0"
+AI_DAILY_CAP = "200"
+
+[ai]
+binding = "AI"
+
+# QLOO_API_KEY is a Worker secret (wrangler secret put QLOO_API_KEY). Never commit it.
+# TICKETMASTER_API_KEY is a Worker secret too (optional; live events).
+
+# Per-visitor limit: 10 requests / 60s per IP. namespace_id 1001.
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+# /api/picks (the only live-Qloo path): 20 requests / 60s per IP. namespace_id 1002.
+[[unsafe.bindings]]
+name = "RATE_LIMITER_PICKS"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 20, period = 60 }
+
+# Daily Workers AI cap counter.
+[[durable_objects.bindings]]
+name = "AI_BUDGET"
+class_name = "AiBudget"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AiBudget"]
+
+# Shared Qloo cache (all edge instances). Fresh 25 min, stale fallback 6 h.
+[[kv_namespaces]]
+binding = "QLOO_CACHE"
+id = "6ac642d06a1c4a73aa3aee5bbeaac40c"
+
+# Re-warm the 2 demo pairs every 20 minutes (~4 KV writes/pair/run, ~576/day; free tier is 1,000).
+[triggers]
+crons = ["7-59/20 * * * *"]

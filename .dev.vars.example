@@ -1,0 +1,4 @@
+# Copy to .dev.vars (gitignored) for local live keys. Leave blank to run in mock mode.
+QLOO_API_KEY=
+TICKETMASTER_API_KEY=
+# MOCK=force

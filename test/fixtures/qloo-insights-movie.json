@@ -1,0 +1,43 @@
+{
+ "_source": {
+  "url": "https://docs.qloo.com/reference/insights-api-deep-dive",
+  "kind": "doc-shaped sample built from the published OpenAPI response schema (docs.qloo.com); not verbatim, not live",
+  "request": "GET /v2/insights?filter.type=urn:entity:movie&signal.interests.entities=636E1B95-6232-43E1-BDFE-37CD209C2CE3&take=2"
+ },
+ "success": true,
+ "results": {
+  "entities": [
+   {
+    "entity_id": "39458DC0-F91D-4591-80A8-E254E66F84A2",
+    "name": "Thief",
+    "type": "urn:entity",
+    "subtype": "urn:entity:movie",
+    "properties": {
+     "release_year": 1981
+    },
+    "query": {
+     "affinity": 0.93
+    },
+    "tags": [
+     {
+      "name": "Neo-Noir"
+     }
+    ]
+   },
+   {
+    "entity_id": "B315A4B4-6756-4CF3-8297-75FD94CC8CF2",
+    "name": "Streets of Fire",
+    "type": "urn:entity",
+    "subtype": "urn:entity:movie",
+    "properties": {
+     "release_year": 1984
+    },
+    "query": {
+     "affinity": 0.88
+    },
+    "tags": []
+   }
+  ],
+  "duration": 41
+ }
+}
