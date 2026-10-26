@@ -16,8 +16,10 @@ export function mockSearch(query) {
   if (q === "!429") throw new QlooError(429); // forced rate-limit check
   if (q === "!500") throw new QlooError(500);
   if (S[q]) return { results: structuredClone(S[q]) };
-  const slug = q.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").toUpperCase() || "X";
-  return { results: [{ entity_id: `MOCK-${slug}`, name: query, types: ["urn:entity:movie"] }] };
+  // Unknown seed: a stable fake match that does not repeat the typed text (real Qloo returns its own names).
+  let h = 0; for (const c of q) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const id = h.toString(36).toUpperCase();
+  return { results: [{ entity_id: `MOCK-${id}`, name: `Mock match ${id}`, types: ["urn:entity:movie"] }] };
 }
 
 const POOL = {
