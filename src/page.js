@@ -38,7 +38,7 @@ async function go(){
   $('#msg').textContent='';
   if(r.status===429){if(!f.b.days)$('#hold').style.display='block';else $('#msg').textContent='Taste picks are catching their breath. Try again in a minute.';return}
   if(!r.ok){$('#msg').textContent=b.message||b.error||'Something went sideways.';return}
-  if(b.needsPick){$('#picks').innerHTML=b.needsPick.map(n=>'<p>Which <b>'+esc(n.seed)+'</b>? '+n.options.map(o=>'<button type="button" data-s="'+esc(n.seed)+'" data-id="'+esc(o.entity_id)+'">'+esc(o.name)+(o.year?' ('+esc(o.year)+')':'')+' · '+esc(o.type)+'</button>').join(' ')+'</p>').join('');
+  if(b.needsPick){$('#picks').innerHTML=b.needsPick.map(n=>'<p>'+esc(n.label||'Which one did you mean?')+' '+n.options.map(o=>'<button type="button" data-s="'+esc(n.i)+'" data-id="'+esc(o.entity_id)+'">'+esc(o.name)+(o.year?' ('+esc(o.year)+')':'')+' · '+esc(o.type)+'</button>').join(' ')+'</p>').join('');
     document.querySelectorAll('#picks button').forEach(x=>x.onclick=()=>{picks[x.dataset.s]=x.dataset.id;$('#picks').innerHTML='';go()});return}
   render(b);
   if(b.degraded)$('#msg').textContent=b.degraded==='fast'?'Taste engine is slow right now; showing city favorites.':'Taste engine is slow right now, so here are city favorites. Hit Plan my weekend again in a minute to tune it.';

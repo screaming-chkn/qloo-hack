@@ -110,10 +110,10 @@ test("ambiguous seed returns pick list; pick resolves it", async () => {
   const { r, b } = await plan({ seeds: ["Dune", "Prince", "Waffle House"], city: "Austin" });
   assert.equal(r.status, 200);
   assert.equal(b.needsPick.length, 1);
-  assert.equal(b.needsPick[0].seed, "Dune");
+  assert.equal(b.needsPick[0].i, 0); assert.equal(b.needsPick[0].label, "Which one did you mean?");
   assert.ok(b.needsPick[0].options.length >= 2);
   const id = b.needsPick[0].options[1].entity_id;
-  const two = (await plan({ seeds: ["Dune", "Prince", "Waffle House"], city: "Austin", picks: { Dune: id } })).b;
+  const two = (await plan({ seeds: ["Dune", "Prince", "Waffle House"], city: "Austin", picks: { 0: id } })).b;
   assert.ok(!two.needsPick); assert.ok(two.seeds.some(s => s.entity_id === id));
 });
 

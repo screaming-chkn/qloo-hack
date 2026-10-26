@@ -128,7 +128,7 @@ test("acceptance 3: movie-only seed in mock -> Sat and Sun each have a hear row;
   const ask = { seeds: ["Dune"], city: "Austin", today: "2026-10-14" };
   let b = await (await handle(post("/api/plan", ask), { MOCK: "1" })).json();
   if (b.needsPick) { // mock asks which Dune: take the movie
-    const picks = Object.fromEntries(b.needsPick.map((n) => [n.seed, (n.options.find((o) => /movie/.test(o.type)) || n.options[0]).entity_id]));
+    const picks = Object.fromEntries(b.needsPick.map((n) => [n.i, (n.options.find((o) => /movie/.test(o.type)) || n.options[0]).entity_id]));
     b = await (await handle(post("/api/plan", { ...ask, picks }), { MOCK: "1" })).json();
   }
   assert.ok(b.days, JSON.stringify(b).slice(0, 200));

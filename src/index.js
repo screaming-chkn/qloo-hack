@@ -24,7 +24,9 @@ export async function plan(request, env, ctx, stage = "full") {
   const city = sanitizeCity(body?.city);
   if (seeds.length < 1 || seeds.length > 5) return json({ error: "Give us 1 to 5 things you love." }, 400);
   if (!city) return json({ error: "Tell us your city or ZIP." }, 400);
-  const picks = body?.picks && typeof body.picks === "object" ? body.picks : {};
+  const rawPicks = body?.picks && typeof body.picks === "object" ? body.picks : {};
+  // Picks may be keyed by seed position ("0".."4", what the page sends) or by seed text (older clients).
+  const picks = { ...rawPicks }; seeds.forEach((sd, i) => { if (typeof rawPicks[String(i)] === "string") picks[sd] = rawPicks[String(i)]; });
   const mock = isMock(env);
   const today = mock && /^\d{4}-\d{2}-\d{2}$/.test(body?.today || "") ? body.today : localToday(city);
   const weekend = weekendOf(today);
@@ -48,7 +50,7 @@ export async function plan(request, env, ctx, stage = "full") {
     if (stage === "fast") { degraded = "fast"; s = { resolved: [], needsPick: [], unresolved: [] }; }
     else try { s = await tm("qloo_search", searchSeeds(left(SEARCH_MS), seeds, picks, trace)); }
     catch (e) { if (e instanceof QlooError && e.status === 429) throw e; degraded = "qloo_slow"; s = { resolved: [], needsPick: [], unresolved: seeds }; }
-    if (s.needsPick.length) return json({ mock, needsPick: s.needsPick, seeds: s.resolved, trace }, 200, st());
+    if (s.needsPick.length) return json({ mock, needsPick: pubPick(s.needsPick, seeds), seeds: pubSeeds(s.resolved), trace: pubTrace(trace) }, 200, st());
     if (!s.resolved.length && !degraded) return json({ error: "Couldn't find any of those. Try a movie, artist or place by name." }, 422, st());
     const ids = s.resolved.map((x) => x.entity_id);
     const fallbackPlaces = () => cityPlaces({ ...env, QLOO_TIMEOUT_MS: 1 }, city, trace).catch(() => []);
@@ -91,7 +93,7 @@ export async function plan(request, env, ctx, stage = "full") {
     let useAi = !mock && !!env.AI;
     if (useAi) useAi = (await takeAiCall(env)).ok;
     const summary = useAi ? await tm("summary", phrase({ ...env, AI_TIMEOUT_MS: Number(env.AI_FAST_MS ?? 1500) }, s.resolved, days, { mock: false })) : await tm("summary", Promise.resolve(template(s.resolved, days)));
-    return json({ mock, city, weekend, seeds: s.resolved, unresolved: s.unresolved, summary, days, events: live.status, credits, stage, ...(degraded ? { degraded } : {}), trace }, 200, st());
+    return json({ mock, city, weekend, seeds: pubSeeds(s.resolved), unresolved: s.unresolved.length, summary, days, events: live.status, credits, stage, ...(degraded ? { degraded } : {}), trace: pubTrace(trace) }, 200, st());
   } catch (e) {
     if (e instanceof QlooError && e.status === 429) { let h = {}; try { h = st(); } catch {} return hold("qloo", h); }
     // Never a 502: log the real error with the request id, then serve a cache-only fallback plan.
@@ -112,10 +114,10 @@ async function fallbackPlan({ env, city, weekend, mock, liveP, stage, st, reques
     const ranked = { place: blend(places, { boosted: boostedIds(blend(places), live.events) }) };
     const days = buildPlan({ seeds: [], ranked, live: { ...live, notes: [] }, weekend, city });
     const credits = [OSM_CREDIT, ...(live.events.some((e) => e.source?.name === "Ticketmaster") ? [{ name: "Event data: Ticketmaster", url: "https://www.ticketmaster.com/" }] : [])];
-    return json({ mock, city, weekend, seeds: [], unresolved: [], summary: template([], days), days, events: live.status, credits, stage, degraded: "error", trace: [] }, 200, safeHeaders());
+    return json({ mock, city, weekend, seeds: [], unresolved: 0, summary: template([], days), days, events: live.status, credits, stage, degraded: "error", trace: [] }, 200, safeHeaders());
   } catch {
     const days = buildPlan({ seeds: [], ranked: {}, live: { events: [] }, weekend, city });
-    return json({ mock, city, weekend, seeds: [], unresolved: [], summary: template([], days), days, events: "error", credits: [OSM_CREDIT], stage, degraded: "error", trace: [] }, 200, safeHeaders());
+    return json({ mock, city, weekend, seeds: [], unresolved: 0, summary: template([], days), days, events: "error", credits: [OSM_CREDIT], stage, degraded: "error", trace: [] }, 200, safeHeaders());
   }
 }
 
@@ -130,7 +132,7 @@ export async function handle(request, env = {}, ctx) {
     let weekend = {}, days = { fri: [], sat: [], sun: [] };
     try { weekend = weekendOf(localToday("")); days = buildPlan({ seeds: [], ranked: {}, live: { events: [] }, weekend, city: "your city" }); } catch {}
     let summary = ""; try { summary = template([], days); } catch {}
-    return json({ mock: false, city: "", weekend, seeds: [], unresolved: [], summary, days, events: "error", credits: [OSM_CREDIT], stage: "full", degraded: "error", trace: [] }, 200, { "x-request-id": requestId });
+    return json({ mock: false, city: "", weekend, seeds: [], unresolved: 0, summary, days, events: "error", credits: [OSM_CREDIT], stage: "full", degraded: "error", trace: [] }, 200, { "x-request-id": requestId });
   }
   if (!pathname.startsWith("/api/")) return res;
   const id = res.headers.get("x-request-id") || rid(request);
@@ -166,3 +168,10 @@ export async function warm(env) {
   }
 }
 export default { fetch: handle, scheduled: (_ev, env, ctx) => ctx.waitUntil(warm(env)) };
+
+// Never echo the raw seed text back: users may type names or other personal words.
+// Public output carries only Qloo's matched entity names, the seed's position, and a generic label.
+const strip = ({ seed, ...e }) => e;
+export const pubSeeds = (list) => (list || []).map(strip);
+export const pubPick = (list, seeds) => (list || []).map((n) => ({ i: seeds.indexOf(n.seed), label: "Which one did you mean?", options: n.options.map(strip) }));
+export const pubTrace = (trace) => (trace || []).map((t) => (t.path === "/search" ? { ...t, params: { ...t.params, query: "[seed]" } } : t));
