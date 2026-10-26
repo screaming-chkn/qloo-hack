@@ -88,7 +88,7 @@ export async function plan(request, env, ctx, stage = "full") {
     const wide = wideP && live.status === "ok" ? await wideP : [];
     const days = buildPlan({ seeds: s.resolved, ranked, live, weekend, city, wide });
     if (artistMiss && !degraded && !hasDatedHear(days)) degraded = "qloo_slow";
-    const credits = [OSM_CREDIT, ...([...live.events, ...Object.values(days).flat()].some((e) => e.source?.name === "Ticketmaster") ? [{ name: "Event data: Ticketmaster", url: "https://www.ticketmaster.com/" }] : [])];
+    const credits = [OSM_CREDIT, ...([...live.events, ...Object.values(days).flat()].some((e) => (e.source?.via || e.source?.name) === "Ticketmaster") ? [{ name: "Event data: Ticketmaster", url: "https://www.ticketmaster.com/" }] : [])];
     // Template summary by default; the generated one only if it lands within 1.5s.
     let useAi = !mock && !!env.AI;
     if (useAi) useAi = (await takeAiCall(env)).ok;
@@ -113,7 +113,7 @@ async function fallbackPlan({ env, city, weekend, mock, liveP, stage, st, reques
     const places = await Promise.resolve().then(() => cityPlaces({ ...env, QLOO_TIMEOUT_MS: 1 }, city)).catch(() => []);
     const ranked = { place: blend(places, { boosted: boostedIds(blend(places), live.events) }) };
     const days = buildPlan({ seeds: [], ranked, live: { ...live, notes: [] }, weekend, city });
-    const credits = [OSM_CREDIT, ...(live.events.some((e) => e.source?.name === "Ticketmaster") ? [{ name: "Event data: Ticketmaster", url: "https://www.ticketmaster.com/" }] : [])];
+    const credits = [OSM_CREDIT, ...(live.events.some((e) => (e.source?.via || e.source?.name) === "Ticketmaster") ? [{ name: "Event data: Ticketmaster", url: "https://www.ticketmaster.com/" }] : [])];
     return json({ mock, city, weekend, seeds: [], unresolved: 0, summary: template([], days), days, events: live.status, credits, stage, degraded: "error", trace: [] }, 200, safeHeaders());
   } catch {
     const days = buildPlan({ seeds: [], ranked: {}, live: { events: [] }, weekend, city });

@@ -57,5 +57,5 @@ $('#f').onsubmit=e=>{e.preventDefault();go()};$('#retry').onclick=go;
 </script>
 <footer>
 <p><b>Privacy:</b> we only use the things you type and your city or ZIP to build this plan. We don't ask for your name, email or exact location, we don't set tracking cookies, and we don't sell anything. Your words are cleaned of emails, phone numbers and handles before they reach Qloo, Ticketmaster or OpenStreetMap. Event results are cached for a few minutes only.</p>
-<p>Taste by <a href="https://www.qloo.com/" target="_blank" rel="noopener">Qloo</a>. Event data by <a href="https://www.ticketmaster.com/" target="_blank" rel="noopener">Ticketmaster</a>; tickets are sold on each event's own Ticketmaster page. Venue notes: map data <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p>
+<p>Taste by <a href="https://www.qloo.com/" target="_blank" rel="noopener">Qloo</a>. Event data by <a href="https://www.ticketmaster.com/" target="_blank" rel="noopener">Ticketmaster</a>; tickets are sold on each event's own linked page. Venue notes: map data <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>.</p>
 </footer></body></html>`;

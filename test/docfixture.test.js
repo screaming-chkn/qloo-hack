@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { handle } from "../src/index.js";
 import { searchSeeds, insightsFor } from "../src/qloo.js";
-import { tmEvents, mapTm, _reset, TM_GAP_MS, TM_CACHE_MS } from "../src/live.js";
+import { tmEvents, mapTm, _reset, TM_GAP_MS, TM_CACHE_MS, hostLabel } from "../src/live.js";
 
 const load = (name) => JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8"));
 const SEARCH = load("qloo-search.json");
@@ -119,7 +119,7 @@ test("recorded Ticketmaster fixture parses on the real tmEvents path", async () 
     assert.equal(mapped[i].title, src.name);
     assert.equal(mapped[i].venue, src._embedded.venues[0].name);
     assert.equal(mapped[i].date, src.dates.start.localDate);
-    assert.deepEqual(mapped[i].source, { name: "Ticketmaster", url: src.url });
+    assert.deepEqual(mapped[i].source, { name: hostLabel(src.url), via: "Ticketmaster", url: src.url });
     assert.match(src.url, /^https:\/\/www\.ticketmaster\.com\//);
   });
   const { out, calls } = await stub(() => ok(TM), () => tmEvents(TMENV, "Austin, TX", WIN, { sleep: nap }));

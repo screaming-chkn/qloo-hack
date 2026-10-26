@@ -79,10 +79,18 @@ export function tmUrl(key, city, w) {
   return `${TM_BASE}?${q}`;
 }
 
+// Label a link by where it actually goes (Ticketmaster's API also returns partner/venue URLs).
+export function hostLabel(url) {
+  let h = ""; try { h = new URL(url).hostname.toLowerCase(); } catch { return "Ticketmaster"; }
+  if (h === "ticketmaster.com" || h.endsWith(".ticketmaster.com")) return "Ticketmaster";
+  if (h === "ticketweb.com" || h.endsWith(".ticketweb.com")) return "TicketWeb";
+  return h.replace(/^www\./, "");
+}
+
 export function mapTm(json) {
   return (json?._embedded?.events || []).map((e) => ({
     kind: "event", title: e.name, venue: e._embedded?.venues?.[0]?.name || "", date: e.dates?.start?.localDate, time: e.dates?.start?.localTime || "",
-    source: { name: "Ticketmaster", url: e.url },
+    source: { name: hostLabel(e.url), via: "Ticketmaster", url: e.url },
     ...(e.classifications?.[0]?.segment?.name ? { segment: e.classifications[0].segment.name } : {}),
   }));
 }
